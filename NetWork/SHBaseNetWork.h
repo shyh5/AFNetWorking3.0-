@@ -1,14 +1,14 @@
 //
-//  HQHttpTool.h
-//  podsText
+//  SHBaseNetWork.h
+//  PodsText
 //
-//  Created by huqiu on 2017/1/5.
-//  Copyright © 2017年 paykee. All rights reserved.
+//  Created by SHyH5 on 2017/8/21.
+//  Copyright © 2017年 SHyH5. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "AFNetworking.h"  //af3.0封装
+#import <AVFoundation/AVFoundation.h>
 
 
 typedef void(^failString)(NSString* message);
@@ -18,21 +18,14 @@ typedef void(^uploadProgress)(float progress);
 typedef void(^downloadProgress)(float progress);
 
 
-typedef NS_ENUM(NSInteger, HTTPMETHOD) {
-    METHOD_GET      = 0,
-    METHOD_POST     = 1,
 
+typedef NS_ENUM(NSInteger, SHBaseNetWorkStyle){
+    SHBaseNetWorkStyleGet    = 0,
+    SHBaseNetWorkStylePost   = 1,
 };
 
-@interface HQHttpTool : NSObject
 
-///**
-// *  单例方法
-// *
-// *  @return 实例对象
-// */
-//+(instancetype)shareManager;
-
+@interface SHBaseNetWork : NSObject
 
 /*
  get 请求方法  post 请求方法
@@ -43,7 +36,7 @@ typedef NS_ENUM(NSInteger, HTTPMETHOD) {
  *  @param failure    失败的block
  
  */
-+(void)POST:(NSString *)URLString httpMethod:(NSInteger)method parameters:(id)parameters success:(void(^)(id responseObject))success failString: (void(^)(NSError* error))failString;
++(void)baseRequest:(NSString *)URLString httpMethod:(NSInteger)method parameters:(id)parameters success:(void(^)(id responseObject))success failString: (void(^)(NSError* error))failString;
 
 
 /*
@@ -149,7 +142,7 @@ typedef NS_ENUM(NSInteger, HTTPMETHOD) {
 
 /*
  
-   取消指定的url请求
+ 取消指定的url请求
  
  *  @param requestType 该请求的请求类型
  *  @param string      该请求的完整url
@@ -157,5 +150,7 @@ typedef NS_ENUM(NSInteger, HTTPMETHOD) {
  */
 
 +(void)cancalHttpRequestWithHttpMethod:(NSInteger)httpMethod requestUrl:(NSString*)requestUrl;
+
+
 
 @end

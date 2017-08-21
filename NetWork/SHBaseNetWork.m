@@ -1,73 +1,51 @@
 //
-//  HQHttpTool.m
-//  podsText
+//  SHBaseNetWork.m
+//  PodsText
 //
-//  Created by huqiu on 2017/1/5.
-//  Copyright © 2017年 paykee. All rights reserved.
+//  Created by SHyH5 on 2017/8/21.
+//  Copyright © 2017年 SHyH5. All rights reserved.
 //
 
-#import "HQHttpTool.h"
-#import <CFNetwork/CFNetwork.h>
-
-#import <AVFoundation/AVFoundation.h>
-
-
-@implementation HQHttpTool
+#import "SHBaseNetWork.h"
+#import "AFNetworking.h"  //af3.0封装
+#import "SHSessionManager.h"
 
 
-////这里可以用一个单例优化一下！！
-//+(instancetype)shareManager{
-//    static HQHttpTool* manager = nil;
-//    
-//    static dispatch_once_t onceToken;
-//    dispatch_once(&onceToken, ^{
-//        manager = [[HQHttpTool alloc]init];
-//    });
-//    
-//    return manager;
-//    
-//}
+@implementation SHBaseNetWork
 
 /*
-   get 请求方法  post 请求方法
+ get 请求方法  post 请求方法
  
-   *  @param URLString  请求的路径
-   *  @param parameters 请求的参数
-   *  @param success    成功的block
-   *  @param failure    失败的block
+ *  @param URLString  请求的路径
+ *  @param parameters 请求的参数
+ *  @param success    成功的block
+ *  @param failure    失败的block
  
  */
-+(void)POST:(NSString *)URLString httpMethod:(NSInteger)method parameters:(id)parameters success:(void(^)(id responseObject))success failString: (void(^)(NSError* error))failString{
-
-    AFHTTPSessionManager* manager = [AFHTTPSessionManager manager];
++(void)baseRequest:(NSString *)URLString httpMethod:(NSInteger)method parameters:(id)parameters success:(void(^)(id responseObject))success failString: (void(^)(NSError* error))failString{
     
-    //申明返回的结果是二进制类型
-    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
-    
-    //如果报接受类型不一致，请替换一致text/html  或者 text/plain
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript",@"text/html",@"text/plain", nil];
-    
-    //设置请求超时时间
-    [manager.requestSerializer setTimeoutInterval:30.0];
-    
+    SHSessionManager *manager = [SHSessionManager shareManager];
     switch (method) {
-        case METHOD_GET:{
-            [manager POST:URLString parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            
+        case SHBaseNetWorkStyleGet:{
+            [manager GET:URLString parameters:nil progress:^(NSProgress * _Nonnull downloadProgress) {
+                
+            } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 if (success) {
                     success(responseObject);
                 }
-                
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 if (failString) {
                     failString(error);
                 }
             }];
+           
         }
             
             break;
-
-
-        case METHOD_POST : {
+            
+            
+        case SHBaseNetWorkStylePost : {
             
             [manager POST:URLString parameters:parameters progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 if (success) {
@@ -79,16 +57,14 @@
                     failString(error);
                 }
             }];
-        
+            
         }
             
             break;
     }
     
-
+    
 }
-
-
 
 
 /*
@@ -101,14 +77,7 @@
           parameters:(id)parameters
              success:(void(^)(id responseObject))success
           failString: (void(^)(NSError* error))failString;{
-    
-    AFHTTPSessionManager* manager = [AFHTTPSessionManager manager];
-    //申明返回的结果是二进制类型
-    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
-    //如果报接受类型不一致，请替换一致text/html  或者 text/plain
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript",@"text/html",@"text/plain", nil];
-    //设置请求超时时间
-    [manager.requestSerializer setTimeoutInterval:30.0];
+    SHSessionManager *manager = [SHSessionManager shareManager];
     
     [manager POST:URLString parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
         /*
@@ -121,10 +90,9 @@
         
         //将得到的二进制图片拼接到表单中 /** data,指定上传的二进制流;name,服务器端所需参数名*/
         
-       //  压缩
-         
-         UIImage *iamge = [UIImage imageNamed:filename];
-         NSData *data = UIImagePNGRepresentation(iamge);
+        //  压缩
+        UIImage *iamge = [UIImage imageNamed:filename];
+        NSData *data = UIImagePNGRepresentation(iamge);
         
         [formData appendPartWithFileData:data name:@"file" fileName:filename mimeType:@"image/png"];
         
@@ -153,13 +121,7 @@
               success:(void(^)(id responseObject))success
            failString: (void(^)(NSError* error))failString{
     
-    AFHTTPSessionManager* manager = [AFHTTPSessionManager manager];
-    //申明返回的结果是二进制类型
-    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
-    //如果报接受类型不一致，请替换一致text/html  或者 text/plain
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript",@"text/html",@"text/plain", nil];
-    //设置请求超时时间
-    [manager.requestSerializer setTimeoutInterval:30.0];
+    SHSessionManager *manager = [SHSessionManager shareManager];
     
     [manager POST:URLString parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
         
@@ -177,11 +139,11 @@
             NSString *fileName = [NSString stringWithFormat:@"%@.png", str];
             NSString *name = [NSString stringWithFormat:@"image_%d.png",i ];
             
-//            /**为了性能考虑，压缩一下图片*/
-//            //image的分类方法
-//            UIImage *  resizedImage =  [UIImage IMGCompressed:image targetWidth:width];
-//            
-//            NSData * imgData = UIImageJPEGRepresentation(resizedImage, .5);
+            //            /**为了性能考虑，压缩一下图片*/
+            //            //image的分类方法
+            //            UIImage *  resizedImage =  [UIImage IMGCompressed:image targetWidth:width];
+            //
+            //            NSData * imgData = UIImageJPEGRepresentation(resizedImage, .5);
             
             //将得到的二进制图片拼接到表单中 /** data,指定上传的二进制流;name,服务器端所需参数名*/
             [formData appendPartWithFileData:image name:name fileName:fileName mimeType:@"image/png"];
@@ -196,11 +158,11 @@
         if (failString) {
             failString(error);
         }
-
+        
     }];
     
-
-
+    
+    
 }
 
 /*
@@ -213,14 +175,8 @@
          fileData:(NSData *)fileData
           success:(void(^)(id responseObject))success
        failString: (void(^)(NSError* error))failString{
-    AFHTTPSessionManager* manager = [AFHTTPSessionManager manager];
-    //申明返回的结果是二进制类型
-    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
-    //如果报接受类型不一致，请替换一致text/html  或者 text/plain
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript",@"text/html",@"text/plain", nil];
-    //设置请求超时时间
-    [manager.requestSerializer setTimeoutInterval:30.0];
     
+    SHSessionManager *manager = [SHSessionManager shareManager];
     [manager POST:URLString parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
         
         //将得到的二进制数据拼接到表单中 /** data,指定上传的二进制流;name,服务器端所需参数名*/
@@ -238,7 +194,7 @@
             failString(error);
         }
     }];
-
+    
 }
 
 
@@ -262,15 +218,7 @@
         failString: (void(^)(NSError* error))failString
           progress:(uploadProgress)progress{
     
-    
-    AFHTTPSessionManager* manager = [AFHTTPSessionManager manager];
-    //申明返回的结果是二进制类型
-    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
-    //如果报接受类型不一致，请替换一致text/html  或者 text/plain
-    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript",@"text/html",@"text/plain", nil];
-    //设置请求超时时间
-    [manager.requestSerializer setTimeoutInterval:30.0];
-    
+    SHSessionManager *manager = [SHSessionManager shareManager];
     //获取视频资源
     AVURLAsset* urlAsset = [AVURLAsset assetWithURL:[NSURL URLWithString:videoPath]];
     
@@ -294,10 +242,10 @@
     
     NSString *  videoWritePath = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingString:[NSString stringWithFormat:@"/output-%@.mp4",[formatter stringFromDate:[NSDate date]]]];
     
-     exportSession.outputURL = [NSURL URLWithString:videoWritePath];
+    exportSession.outputURL = [NSURL URLWithString:videoWritePath];
     
     
-     exportSession.outputFileType =  AVFileTypeMPEG4;
+    exportSession.outputFileType =  AVFileTypeMPEG4;
     
     [exportSession exportAsynchronouslyWithCompletionHandler:^{
         switch ([exportSession status]) {
@@ -307,7 +255,7 @@
                     //获得沙盒中的视频内容
                     
                     [formData appendPartWithFileURL:[NSURL fileURLWithPath:videoWritePath] name:@"write you want to writre" fileName:videoWritePath mimeType:@"video/mpeg4" error:nil];
-
+                    
                 } progress:^(NSProgress * _Nonnull uploadProgress) {
                     if (progress) {
                         progress(uploadProgress.completedUnitCount / uploadProgress.totalUnitCount);
@@ -323,10 +271,10 @@
                     if (failString) {
                         failString(error);
                     }
-
+                    
                     
                 }];
-            
+                
                 
             }
                 break;
@@ -335,7 +283,7 @@
                 break;
         }
     }];
-
+    
 }
 
 
@@ -378,7 +326,7 @@
         }
         
     }];
-
+    
 }
 
 #pragma mark -  取消所有的网络请求
@@ -390,8 +338,8 @@
 
 +(void)cancelAllRequest
 {
-    
-    [[AFHTTPSessionManager manager].operationQueue cancelAllOperations];
+    SHSessionManager *manager = [SHSessionManager shareManager];
+    [manager.operationQueue cancelAllOperations];
     
 }
 
@@ -407,12 +355,12 @@
 +(void)cancalHttpRequestWithHttpMethod:(NSInteger)httpMethod requestUrl:(NSString*)requestUrl{
     NSError* error;
     
-    NSString* requestType = httpMethod == METHOD_GET ? @"get" : @"post";
+    NSString* requestType = httpMethod == SHBaseNetWorkStyleGet ? @"get" : @"post";
+    SHSessionManager *manager = [SHSessionManager shareManager];
     
+    NSString* urlToPeCanced  = [[[manager.requestSerializer requestWithMethod:requestType URLString:requestUrl parameters:nil error:&error] URL] path];
     
-    NSString* urlToPeCanced  = [[[[AFHTTPSessionManager manager].requestSerializer requestWithMethod:requestType URLString:requestUrl parameters:nil error:&error] URL] path];
-    
-    for (NSOperation * operation in [AFHTTPSessionManager manager].operationQueue.operations) {
+    for (NSOperation * operation in manager.operationQueue.operations) {
         
         //如果是请求队列
         if ([operation isKindOfClass:[NSURLSessionTask class]]) {
@@ -434,5 +382,6 @@
         
     }
 }
+
 
 @end
